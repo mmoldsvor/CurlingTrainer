@@ -38,7 +38,7 @@ let dataPointList: Array<DataPointListInterface> = [
             {point: new Point(300, 26), dataPointValue: {velocity: 2, spin: 1}},
             {point: new Point(200, 26), dataPointValue: {velocity: 2, spin: 1}},
             {point: new Point(50, 25), dataPointValue: {velocity: 0, spin: 0}}
-        ], true, false, '#7dfcff'),
+        ], true, true, '#7dfcff'),
     new DataPointList('Attempt 2',
         [
             {point: new Point(1000, 110), dataPointValue: {velocity: 3, spin: 2}},
@@ -64,7 +64,7 @@ let dataPointList: Array<DataPointListInterface> = [
             {point: new Point(300, 45), dataPointValue: {velocity: 2, spin: 1}},
             {point: new Point(200, 47), dataPointValue: {velocity: 2, spin: 1}},
             {point: new Point(100, 50), dataPointValue: {velocity: 0, spin: 0}}
-        ], false, true, COLOR_INDICATOR)]
+        ], true, true, COLOR_INDICATOR)]
 ;
 let currentDataPoint: DataPointInterface | null = null;
 let indicatorThreshold: number = 40;
@@ -200,6 +200,11 @@ function drawCourt(){
 
     drawEllipse(new Point(0, 0), 15, COLOR_WHITE);
     drawEllipse(new Point(3475, 0), 15, COLOR_WHITE);
+}
+
+function drawStone(){
+    drawEllipse(new Point(300, 150), 14.5, COLOR_INDICATOR_INACTIVE);
+    drawEllipse(new Point(300, 150), 12, COLOR_RED);
 }
 
 function drawDataPoints(){
