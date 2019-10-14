@@ -81,7 +81,7 @@ module CanvasHandler {
         show: boolean;
         color: string;
 
-        constructor(name: string, dataPoints: Array<DataPointInterface>, active: boolean, show: boolean, color: string = '#858585'){
+        constructor(name: string, dataPoints: Array<DataPointInterface>, active: boolean, show: boolean, color: string = `hsl(${Math.random()*255}, 100%, 65%)`){
             this.name = name;
             this.dataPoints = dataPoints;
             this.active = active;
