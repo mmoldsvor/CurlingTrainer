@@ -8,6 +8,7 @@ import RectangleInterface = CanvasHandler.RectangleInterface;
 import Rectangle = CanvasHandler.Rectangle;
 import DataPointList = CanvasHandler.DataPointList;
 import DataPointValueInterface = CanvasHandler.DataPointValueInterface;
+import networkData = Network.networkData;
 
 let canvas: HTMLCanvasElement;
 let context: CanvasRenderingContext2D;
@@ -77,7 +78,8 @@ let dataPointList: Array<DataPointListInterface> = [
 let currentDataPoint: DataPointListInterface | null = null;
 let dataPointMouseAverage: PointInterface | null = null;
 
-let tracking:boolean  = false;
+let tracking: boolean  = false;
+let dataPointThreshold: number = 5;
 
 let indicatorThreshold: number = 50;
 let zoomLimits: PointInterface = new Point(0.35, 20);
@@ -180,6 +182,7 @@ function updateCanvas(){
         drawStone();
     }
 
+    drawDataBox();
 
     window.requestAnimationFrame(updateCanvas);
 }
@@ -200,11 +203,20 @@ function getUniqueName(){
 }
 
 function handleNetworkData(){
+    // Adds currently tracked position to data points if distance is lower than threshold
     if (Network.networkData != null && tracking) {
         const position = new Point(Network.networkData['position'].x, Network.networkData['position'].y);
         const data: DataPointValueInterface = Network.networkData['data'];
 
-        dataPointList[dataPointList.length-1].dataPoints.push({point: position, dataPointValue: data} as DataPointInterface)
+        let oldDataPoints: Array<DataPointInterface> = dataPointList[dataPointList.length-1].dataPoints;
+        let latestPoint: PointInterface;
+        if(oldDataPoints.length > 0) {
+            latestPoint = oldDataPoints[oldDataPoints.length - 1].point;
+        }
+
+        if(latestPoint == undefined || latestPoint.distance(position) > dataPointThreshold){
+            dataPointList[dataPointList.length-1].dataPoints.push({point: position, dataPointValue: data} as DataPointInterface)
+        }
     }
 }
 
@@ -238,10 +250,8 @@ function drawCourt(){
 }
 
 function drawStone(){
-    let currentDataPointList = dataPointList[dataPointList.length-1].dataPoints;
-
-    if(currentDataPointList.length > 0) {
-        let point: PointInterface = currentDataPointList[currentDataPointList.length - 1].point;
+    if(Network.networkData != null && Network.networkData['position'] != null){
+        let point: PointInterface = new Point(Network.networkData['position'].x, Network.networkData['position'].y);
         drawEllipse(point, 14.5, COLOR_INDICATOR_INACTIVE);
         drawEllipse(point, 12, COLOR_RED);
     }
@@ -259,7 +269,9 @@ function drawDataPoints(){
             }
         }
     }
+}
 
+function drawDataBox(){
     if (currentDataPoint != null) {
         let dataPoint = currentDataPoint.dataPoints[0];
         let color = currentDataPoint.color;
