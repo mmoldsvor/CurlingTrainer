@@ -2,16 +2,19 @@
 
 import Point = CanvasHandler.Point;
 import PointInterface = CanvasHandler.PointInterface;
+import DataPointInterface = CanvasHandler.DataPointInterface;
 import DataPointListInterface = CanvasHandler.DataPointListInterface;
 import RectangleInterface = CanvasHandler.RectangleInterface;
 import Rectangle = CanvasHandler.Rectangle;
 import DataPointList = CanvasHandler.DataPointList;
+import DataPointValueInterface = CanvasHandler.DataPointValueInterface;
 
 let canvas: HTMLCanvasElement;
 let context: CanvasRenderingContext2D;
 
 const COLOR_RED: string = '#E03428';
 const COLOR_BLUE: string = '#2887E0';
+const COLOR_INDICATOR: string = '#ff4d57';
 const COLOR_INDICATOR_INACTIVE: string = '#a0a0a0';
 const COLOR_BACKGROUND: string = '#f9f9f9';
 const COLOR_BLACK: string = '#232323';
@@ -27,7 +30,6 @@ let test = [];
 for (let x = 0; x < 1000; x+= 4){
     test.push({point: new Point(x, -0.0005*Math.pow(x, 2) + 0.65*x + 20), dataPointValue: {velocity: 3, spin: 2}});
 }
-console.log(test);
 
 let dataPointList: Array<DataPointListInterface> = [
     new DataPointList('Attempt 1',
@@ -75,7 +77,9 @@ let dataPointList: Array<DataPointListInterface> = [
 let currentDataPoint: DataPointListInterface | null = null;
 let dataPointMouseAverage: PointInterface | null = null;
 
-let indicatorThreshold: number = 100;
+let tracking:boolean  = false;
+
+let indicatorThreshold: number = 50;
 let zoomLimits: PointInterface = new Point(0.35, 20);
 let scrollSpeed: number = 0.05;
 
@@ -129,8 +133,9 @@ document.onmousemove = (event) => {
     //Gets closest dataPoint from any visible and active dataPoint lists
     let closestDistance: number;
     let closestDataPoint: DataPointListInterface;
+
     for (let dataPoints of dataPointList) {
-        if (dataPoints.active && dataPoints.show) {
+        if (dataPoints.active && dataPoints.show && dataPoints.dataPoints.length > 0) {
             let closest = dataPoints.getClosest(mousePosition.x, mousePosition.y);
             let distance = closest.point.distance(mousePosition);
             if (closestDistance == undefined || distance < closestDistance) {
@@ -170,12 +175,37 @@ function updateCanvas(){
 
     drawDataPoints();
 
-    if (Network.networkData != null) {
-        const position = new Point(Network.networkData['position'].x, Network.networkData['position'].y);
-        drawPoint(position, 3, COLOR_BLACK);
+    if(tracking) {
+        handleNetworkData();
+        drawStone();
     }
 
+
     window.requestAnimationFrame(updateCanvas);
+}
+
+function newTrack(){
+    tracking = true;
+
+    let currentTrack: DataPointListInterface = new DataPointList(getUniqueName(), [], true, true, COLOR_INDICATOR);
+    dataPointList.push(currentTrack);
+}
+
+function stopTrack(){
+    tracking = false;
+}
+
+function getUniqueName(){
+    return `Attempt ${String(dataPointList.length + 1)}`;
+}
+
+function handleNetworkData(){
+    if (Network.networkData != null && tracking) {
+        const position = new Point(Network.networkData['position'].x, Network.networkData['position'].y);
+        const data: DataPointValueInterface = Network.networkData['data'];
+
+        dataPointList[dataPointList.length-1].dataPoints.push({point: position, dataPointValue: data} as DataPointInterface)
+    }
 }
 
 function drawCourt(){
@@ -208,8 +238,13 @@ function drawCourt(){
 }
 
 function drawStone(){
-    drawEllipse(new Point(300, 150), 14.5, COLOR_INDICATOR_INACTIVE);
-    drawEllipse(new Point(300, 150), 12, COLOR_RED);
+    let currentDataPointList = dataPointList[dataPointList.length-1].dataPoints;
+
+    if(currentDataPointList.length > 0) {
+        let point: PointInterface = currentDataPointList[currentDataPointList.length - 1].point;
+        drawEllipse(point, 14.5, COLOR_INDICATOR_INACTIVE);
+        drawEllipse(point, 12, COLOR_RED);
+    }
 }
 
 function drawDataPoints(){
@@ -302,15 +337,4 @@ function drawTextBox(point: PointInterface, text){
         context.fillStyle = COLOR_BLACK;
         context.fillText(lines[line], translatedPoint.x + box.width*0.05, translatedPoint.y - 2*lineHeight + (line*lineHeight));
     }
-}
-
-function hashString(string){
-    let hash = 0, i, chr;
-    if (string.length === 0) return hash;
-    for (i = 0; i < string.length; i++) {
-        chr   = string.charCodeAt(i);
-        hash  = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
 }
