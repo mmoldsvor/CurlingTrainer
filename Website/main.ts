@@ -77,6 +77,10 @@ let dataPointList: Array<DataPointListInterface> = [
 let currentDataPoint: DataPointListInterface | null = null;
 let dataPointMouseAverage: PointInterface | null = null;
 
+let currentHoverIndex: number | null = null;
+let currentSelectedIndex: number | null = null;
+let currentMousePosition: PointInterface | null = null;
+
 let tracking: boolean = false;
 let dataPointThreshold: number = 5;
 // Random number between 0 and 255
@@ -128,6 +132,17 @@ document.onwheel = (event) => {
     resizeViewport();
 };
 
+document.onmousedown = (event) => {
+    currentMousePosition = new Point(event.x, event.y);
+};
+
+document.onmouseup = (event) => {
+    if(currentMousePosition.x == event.x && currentMousePosition.y == event.y){
+        currentSelectedIndex = currentHoverIndex;
+    }
+    currentMousePosition = null;
+};
+
 document.onmousemove = (event) => {
     let canvasBound = canvas.getBoundingClientRect();
     let x = event.clientX - canvasBound.left;
@@ -146,23 +161,27 @@ document.onmousemove = (event) => {
     //Gets closest dataPoint from any visible and active dataPoint lists
     let closestDistance: number;
     let closestDataPoint: DataPointListInterface;
+    let currentIndex:number;
 
-    for (let dataPoints of dataPointList) {
-        if (dataPoints.active && dataPoints.show && dataPoints.dataPoints.length > 0) {
-            let closest = dataPoints.getClosest(mousePosition.x, mousePosition.y);
+    for (let i = 0; i < dataPointList.length; i++){
+        if (dataPointList[i].active && dataPointList[i].show && dataPointList[i].dataPoints.length > 0) {
+            let closest = dataPointList[i].getClosest(mousePosition.x, mousePosition.y);
             let distance = closest.point.distance(mousePosition);
             if (closestDistance == undefined || distance < closestDistance) {
                 closestDistance = distance;
-                closestDataPoint = new DataPointList(dataPoints.name, [closest], true, true, dataPoints.color, Date.now());
+                closestDataPoint = new DataPointList(dataPointList[i].name, [closest], true, true, dataPointList[i].color, Date.now());
+                currentIndex = i;
             }
         }
     }
     if (closestDataPoint != undefined && closestDataPoint.dataPoints[0].point.distance(mousePosition) < indicatorThreshold) {
         currentDataPoint = closestDataPoint;
-        dataPointMouseAverage = new Point(mousePosition.x + (closestDataPoint.dataPoints[0].point.x - mousePosition.x) / 2, mousePosition.y + (closestDataPoint.dataPoints[0].point.y - mousePosition.y) / 2)
+        dataPointMouseAverage = new Point(mousePosition.x + (closestDataPoint.dataPoints[0].point.x - mousePosition.x) / 2, mousePosition.y + (closestDataPoint.dataPoints[0].point.y - mousePosition.y) / 2);
+        currentHoverIndex = currentIndex;
     }else {
         currentDataPoint = null;
         dataPointMouseAverage = null;
+        currentHoverIndex = null;
     }
 };
 
