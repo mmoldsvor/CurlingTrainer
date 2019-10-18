@@ -235,15 +235,11 @@ function startFitToScreen(shouldFollow: boolean = false){
     if(!follow) {
         follow = shouldFollow;
     }
-    resetScreenPosition();
 }
 
 function stopFollow(){
     fitToScreen = false;
     follow = false;
-}
-
-function resetScreenPosition(){
 }
 
 function updateFitToScreen() {
@@ -254,15 +250,19 @@ function updateFitToScreen() {
         position = new Point(Network.networkData['position'].x, Network.networkData['position'].y);
     }
 
-    const interpolationFactor: number = 0.3;
+    const interpolationFactor: number = 0.2;
 
     let finalOffset = {x: canvas.width / 2 - (position.x - trackingArea.x) * magnifier, y: 0, magnifier: canvas.height/trackingArea.height};
     let distance = {x: offset.x - finalOffset.x, y: offset.y - finalOffset.y, magnifier: magnifier - finalOffset.magnifier};
 
     offset.x -= distance.x * interpolationFactor;
     if(fitToScreen) {
+        let deltaMagnifier = -distance.magnifier * interpolationFactor;
         offset.y -= distance.y * interpolationFactor;
-        magnifier -= distance.magnifier * interpolationFactor;
+        magnifier += deltaMagnifier;
+
+        // Offset x to compensate for the fact that magnifier scales only the width, and position stays the same.
+        offset.x += trackingArea.width * deltaMagnifier * ((viewport.x - canvas.width/2) / viewport.width);
     }
 
     return distance;
