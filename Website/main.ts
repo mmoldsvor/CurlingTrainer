@@ -8,7 +8,6 @@ import RectangleInterface = CanvasHandler.RectangleInterface;
 import Rectangle = CanvasHandler.Rectangle;
 import DataPointList = CanvasHandler.DataPointList;
 import DataPointValueInterface = CanvasHandler.DataPointValueInterface;
-import networkData = Network.networkData;
 
 let canvas: HTMLCanvasElement;
 let context: CanvasRenderingContext2D;
@@ -78,10 +77,14 @@ let dataPointList: Array<DataPointListInterface> = [
 let currentDataPoint: DataPointListInterface | null = null;
 let dataPointMouseAverage: PointInterface | null = null;
 
-let tracking: boolean  = false;
+let tracking: boolean = false;
 let dataPointThreshold: number = 5;
 
-let indicatorThreshold: number = 50;
+let follow: boolean = false;
+let fitToScreen: boolean = false;
+const fitToScreenThreshold = 2;
+
+const indicatorThreshold: number = 50;
 let zoomLimits: PointInterface = new Point(0.35, 20);
 let scrollSpeed: number = 0.05;
 
@@ -93,11 +96,16 @@ window.onload = () => {
     viewport = new Rectangle(0, 0, trackingArea.width, trackingArea.height);
 
     resizeCanvas();
+
+    startFitToScreen();
+    resizeViewport();
+
     updateCanvas();
 };
 
 window.onresize = () => {
     resizeCanvas();
+    resizeViewport();
 };
 
 document.onwheel = (event) => {
@@ -115,7 +123,7 @@ document.onwheel = (event) => {
         offset.y += trackingArea.height * deltaMagnifier * ((viewport.y - y) / viewport.height);
     }
 
-    resizeCanvas();
+    resizeViewport();
 };
 
 document.onmousemove = (event) => {
@@ -126,7 +134,8 @@ document.onmousemove = (event) => {
     if (event.buttons == 1) {
         offset.x += event.movementX;
         offset.y += event.movementY;
-        resizeCanvas();
+        stopFollow();
+        resizeViewport();
     }
 
     //Translates mouse position from viewport to trackingArea coordinate system
@@ -158,11 +167,23 @@ document.onmousemove = (event) => {
 function resizeCanvas(){
     canvas.width = canvas.parentElement.clientWidth;
     canvas.height = canvas.parentElement.clientHeight;
+}
 
+function resizeViewport(){
     viewport = new Rectangle(offset.x, offset.y, trackingArea.width * magnifier, trackingArea.height * magnifier);
 }
 
 function updateCanvas(){
+    if(fitToScreen || follow){
+        let distance = updateFitToScreen();
+        if(Math.abs(distance.x) < fitToScreenThreshold
+            && Math.abs(distance.y) < fitToScreenThreshold
+            && Math.abs(distance.magnifier) < fitToScreenThreshold/100){
+            fitToScreen = false;
+        }
+        resizeViewport();
+    }
+
     context.fillStyle = COLOR_TRACKING_AREA;
     context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -179,27 +200,72 @@ function updateCanvas(){
 
     if(tracking) {
         handleNetworkData();
-        drawStone();
     }
-
+    drawStone();
     drawDataBox();
 
     window.requestAnimationFrame(updateCanvas);
 }
 
 function newTrack(){
+    if(tracking){
+        stopTrack();
+    }
     tracking = true;
 
-    let currentTrack: DataPointListInterface = new DataPointList(getUniqueName(), [], true, true, COLOR_INDICATOR);
+    let currentTrack: DataPointListInterface = new DataPointList(getName(), [], true, true, COLOR_INDICATOR);
     dataPointList.push(currentTrack);
 }
 
 function stopTrack(){
     tracking = false;
+    dataPointList[dataPointList.length-1].color = getUniqueColor();
 }
 
-function getUniqueName(){
+function getName(){
     return `Attempt ${String(dataPointList.length + 1)}`;
+}
+
+function getUniqueColor(){
+    return COLOR_BLACK;
+}
+
+function startFitToScreen(shouldFollow: boolean = false){
+    fitToScreen = true;
+    if(!follow) {
+        follow = shouldFollow;
+    }
+    resetScreenPosition();
+}
+
+function stopFollow(){
+    fitToScreen = false;
+    follow = false;
+}
+
+function resetScreenPosition(){
+}
+
+function updateFitToScreen() {
+    // Scales screen to fit the height of tracking area. Recenter to track if available, center of left goal otherwise
+    let position: PointInterface = new Point(0, 0);
+
+    if (Network.networkData != null && Network.networkData['position'] != null) {
+        position = new Point(Network.networkData['position'].x, Network.networkData['position'].y);
+    }
+
+    const interpolationFactor: number = 0.3;
+
+    let finalOffset = {x: canvas.width / 2 - (position.x - trackingArea.x) * magnifier, y: 0, magnifier: canvas.height/trackingArea.height};
+    let distance = {x: offset.x - finalOffset.x, y: offset.y - finalOffset.y, magnifier: magnifier - finalOffset.magnifier};
+
+    offset.x -= distance.x * interpolationFactor;
+    if(fitToScreen) {
+        offset.y -= distance.y * interpolationFactor;
+        magnifier -= distance.magnifier * interpolationFactor;
+    }
+
+    return distance;
 }
 
 function handleNetworkData(){
@@ -249,23 +315,23 @@ function drawCourt(){
     drawEllipse(new Point(3475, 0), 15, COLOR_WHITE);
 }
 
-function drawStone(){
+function drawStone(color: string = COLOR_RED){
     if(Network.networkData != null && Network.networkData['position'] != null){
         let point: PointInterface = new Point(Network.networkData['position'].x, Network.networkData['position'].y);
         drawEllipse(point, 14.5, COLOR_INDICATOR_INACTIVE);
-        drawEllipse(point, 12, COLOR_RED);
+        drawEllipse(point, 12, color);
     }
 }
 
 function drawDataPoints(){
-    for (let dataPoints of dataPointList) {
-        let color = dataPoints.color;
-        if (dataPoints.active == false)
+    for (let dataPoint of dataPointList){
+        let color = dataPoint.color;
+        if (dataPoint.active == false)
             color = COLOR_INDICATOR_INACTIVE;
-        if (dataPoints.show) {
-            for (let i = 0; i < dataPoints.dataPoints.length - 1; i++) {
-                drawLine(dataPoints.dataPoints[i].point, dataPoints.dataPoints[i + 1].point, color, 4);
-                drawPoint(dataPoints.dataPoints[i].point, 2, color);
+        if (dataPoint.show) {
+            for (let i = 0; i < dataPoint.dataPoints.length - 1; i++) {
+                drawLine(dataPoint.dataPoints[i].point, dataPoint.dataPoints[i + 1].point, color, 4);
+                drawPoint(dataPoint.dataPoints[i].point, 2, color);
             }
         }
     }
