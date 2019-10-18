@@ -28,57 +28,59 @@ let offset: PointInterface = new Point(0, 0);
 
 let test = [];
 for (let x = 0; x < 1000; x+= 4){
-    test.push({point: new Point(x, -0.0005*Math.pow(x, 2) + 0.65*x + 20), dataPointValue: {velocity: 3, spin: 2}});
+    test.push({point: new Point(x, -0.0005*Math.pow(x, 2) + 0.65*x + 20), dataPointValue: {velocity: 3, spin: 2}, timestamp: x*10});
 }
 
 let dataPointList: Array<DataPointListInterface> = [
     new DataPointList('Attempt 1',
-        test, true, true, '#ffa21d'),
+        test, true, true, '#ffa21d', 0),
     new DataPointList('Attempt 2',
         [
-            {point: new Point(1000, 110), dataPointValue: {velocity: 3, spin: 2}},
-            {point: new Point(900, 85), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(800, 70), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(700, 40), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(600, 30), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(500, 28), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(400, 28), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(300, 26), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(200, 26), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(50, 25), dataPointValue: {velocity: 0, spin: 0}}
-        ], true, true, '#7dfcff'),
+            {point: new Point(1000, 110), dataPointValue: {velocity: 3, spin: 2}, timestamp: 0},
+            {point: new Point(900, 85), dataPointValue: {velocity: 2, spin: 1}, timestamp: 100},
+            {point: new Point(800, 70), dataPointValue: {velocity: 2, spin: 1}, timestamp: 200},
+            {point: new Point(700, 40), dataPointValue: {velocity: 2, spin: 1}, timestamp: 300},
+            {point: new Point(600, 30), dataPointValue: {velocity: 2, spin: 1}, timestamp: 400},
+            {point: new Point(500, 28), dataPointValue: {velocity: 2, spin: 1}, timestamp: 500},
+            {point: new Point(400, 28), dataPointValue: {velocity: 2, spin: 1}, timestamp: 600},
+            {point: new Point(300, 26), dataPointValue: {velocity: 2, spin: 1}, timestamp: 700},
+            {point: new Point(200, 26), dataPointValue: {velocity: 2, spin: 1}, timestamp: 800},
+            {point: new Point(50, 25), dataPointValue: {velocity: 0, spin: 0}, timestamp: 900}
+        ], true, true, '#7dfcff', 0),
     new DataPointList('Attempt 3',
         [
-            {point: new Point(1000, 110), dataPointValue: {velocity: 3, spin: 2}},
-            {point: new Point(900, 90), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(800, 75), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(700, 45), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(600, 35), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(500, 25), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(400, 30), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(300, 35), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(200, 40), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(100, 45), dataPointValue: {velocity: 0, spin: 0}}
-        ], true, true, '#fb80ff'),
+            {point: new Point(1000, 110), dataPointValue: {velocity: 3, spin: 2}, timestamp: 0},
+            {point: new Point(900, 90), dataPointValue: {velocity: 2, spin: 1}, timestamp: 100},
+            {point: new Point(800, 75), dataPointValue: {velocity: 2, spin: 1}, timestamp: 200},
+            {point: new Point(700, 45), dataPointValue: {velocity: 2, spin: 1}, timestamp: 300},
+            {point: new Point(600, 35), dataPointValue: {velocity: 2, spin: 1}, timestamp: 400},
+            {point: new Point(500, 25), dataPointValue: {velocity: 2, spin: 1}, timestamp: 500},
+            {point: new Point(400, 30), dataPointValue: {velocity: 2, spin: 1}, timestamp: 600},
+            {point: new Point(300, 35), dataPointValue: {velocity: 2, spin: 1}, timestamp: 700},
+            {point: new Point(200, 40), dataPointValue: {velocity: 2, spin: 1}, timestamp: 800},
+            {point: new Point(100, 45), dataPointValue: {velocity: 0, spin: 0}, timestamp: 900}
+        ], true, true, '#fb80ff', 0),
     new DataPointList('Attempt 4',
         [
-            {point: new Point(1000, 100), dataPointValue: {velocity: 3, spin: 2}},
-            {point: new Point(900, 90), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(800, 80), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(700, 50), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(600, 40), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(500, 30), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(400, 40), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(300, 45), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(200, 47), dataPointValue: {velocity: 2, spin: 1}},
-            {point: new Point(100, 50), dataPointValue: {velocity: 0, spin: 0}}
-        ], true, true, '#ff4652')];
+            {point: new Point(1000, 100), dataPointValue: {velocity: 3, spin: 2}, timestamp: 0},
+            {point: new Point(900, 90), dataPointValue: {velocity: 2, spin: 1}, timestamp: 100},
+            {point: new Point(800, 80), dataPointValue: {velocity: 2, spin: 1}, timestamp: 200},
+            {point: new Point(700, 50), dataPointValue: {velocity: 2, spin: 1}, timestamp: 300},
+            {point: new Point(600, 40), dataPointValue: {velocity: 2, spin: 1}, timestamp: 400},
+            {point: new Point(500, 30), dataPointValue: {velocity: 2, spin: 1}, timestamp: 500},
+            {point: new Point(400, 40), dataPointValue: {velocity: 2, spin: 1}, timestamp: 600},
+            {point: new Point(300, 45), dataPointValue: {velocity: 2, spin: 1}, timestamp: 700},
+            {point: new Point(200, 47), dataPointValue: {velocity: 2, spin: 1}, timestamp: 800},
+            {point: new Point(100, 50), dataPointValue: {velocity: 0, spin: 0}, timestamp: 900}
+        ], true, true, '#ff4652', 0)];
 
 let currentDataPoint: DataPointListInterface | null = null;
 let dataPointMouseAverage: PointInterface | null = null;
 
 let tracking: boolean = false;
 let dataPointThreshold: number = 5;
+// Random number between 0 and 255
+let colorIndex: number = Math.floor(Math.random() * Math.floor(255));
 
 let follow: boolean = false;
 let fitToScreen: boolean = false;
@@ -151,7 +153,7 @@ document.onmousemove = (event) => {
             let distance = closest.point.distance(mousePosition);
             if (closestDistance == undefined || distance < closestDistance) {
                 closestDistance = distance;
-                closestDataPoint = new DataPointList(dataPoints.name, [closest], true, true, dataPoints.color);
+                closestDataPoint = new DataPointList(dataPoints.name, [closest], true, true, dataPoints.color, Date.now());
             }
         }
     }
@@ -213,7 +215,7 @@ function newTrack(){
     }
     tracking = true;
 
-    let currentTrack: DataPointListInterface = new DataPointList(getName(), [], true, true, COLOR_INDICATOR);
+    let currentTrack: DataPointListInterface = new DataPointList(getName(), [], true, true, COLOR_INDICATOR, Date.now());
     dataPointList.push(currentTrack);
 }
 
@@ -227,7 +229,9 @@ function getName(){
 }
 
 function getUniqueColor(){
-    return COLOR_BLACK;
+    const interval: number = 77;
+    colorIndex += 1;
+    return `hsl(${(colorIndex*interval) % 256}, 100%, 65%)`;
 }
 
 function startFitToScreen(shouldFollow: boolean = false){
@@ -281,7 +285,7 @@ function handleNetworkData(){
         }
 
         if(latestPoint == undefined || latestPoint.distance(position) > dataPointThreshold){
-            dataPointList[dataPointList.length-1].dataPoints.push({point: position, dataPointValue: data} as DataPointInterface)
+            dataPointList[dataPointList.length-1].dataPoints.push({point: position, dataPointValue: data, timestamp: Date.now()} as DataPointInterface)
         }
     }
 }

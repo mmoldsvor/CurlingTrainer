@@ -20,6 +20,7 @@ module CanvasHandler {
     export interface DataPointInterface{
         point: PointInterface;
         dataPointValue: DataPointValueInterface;
+        timestamp: number;
     }
 
     export interface DataPointValueInterface{
@@ -33,6 +34,7 @@ module CanvasHandler {
         active: boolean;
         show: boolean;
         color: string;
+        startTimestamp: number;
 
         getClosest(x: number, y: number): DataPointInterface;
     }
@@ -80,13 +82,15 @@ module CanvasHandler {
         active: boolean;
         show: boolean;
         color: string;
+        startTimestamp: number;
 
-        constructor(name: string, dataPoints: Array<DataPointInterface>, active: boolean, show: boolean, color: string = `hsl(${Math.random()*255}, 100%, 65%)`){
+        constructor(name: string, dataPoints: Array<DataPointInterface>, active: boolean, show: boolean, color: string, startTimestamp: number){
             this.name = name;
             this.dataPoints = dataPoints;
             this.active = active;
             this.show = show;
-            this.color = color
+            this.color = color;
+            this.startTimestamp = startTimestamp;
         }
 
         getClosest(x:number, y: number){
