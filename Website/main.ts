@@ -83,8 +83,8 @@ let currentMousePosition: PointInterface | null = null;
 
 let tracking: boolean = false;
 let dataPointThreshold: number = 5;
-// Random number between 0 and 255
-let colorIndex: number = Math.floor(Math.random() * Math.floor(255));
+
+let uniqueColor = colorGenerator();
 
 let follow: boolean = false;
 let fitToScreen: boolean = false;
@@ -234,23 +234,42 @@ function newTrack(){
     }
     tracking = true;
 
-    let currentTrack: DataPointListInterface = new DataPointList(getName(), [], true, true, COLOR_INDICATOR, Date.now());
+    let generatedHue = uniqueColor.next().value;
+    let currentTrack: DataPointListInterface = new DataPointList(getName(), [], true, true, `hsl(${generatedHue}, 100%, 65%)`, Date.now());
     dataPointList.push(currentTrack);
+    currentSelectedIndex = dataPointList.length-1;
 }
 
 function stopTrack(){
     tracking = false;
-    dataPointList[dataPointList.length-1].color = getUniqueColor();
+}
+
+function cancelTrack(){
+    if(confirm('Do you wish to stop tracking without saving?')) {
+        tracking = false;
+        dataPointList.pop();
+    }
 }
 
 function getName(){
     return `Attempt ${String(dataPointList.length + 1)}`;
 }
 
-function getUniqueColor(){
-    const interval: number = 77;
-    colorIndex += 1;
-    return `hsl(${(colorIndex*interval) % 256}, 100%, 65%)`;
+function* colorGenerator(){
+    while(true) {
+        // Random number between 0 and 255
+        let value: number = Math.floor(Math.random() * Math.floor(255));
+        yield value % 256;
+        value += 128;
+        for (let i = 0; i < 4; i++) {
+            let subdivisions = Math.pow(2, i);
+            for (let j = 0; j < subdivisions; j++) {
+                value += 256 / subdivisions;
+                yield value % 256;
+            }
+            value += 256 / (4 * subdivisions);
+        }
+    }
 }
 
 function startFitToScreen(shouldFollow: boolean = false){
