@@ -294,7 +294,9 @@ function updateFitToScreen() {
 
     const interpolationFactor: number = 0.2;
 
-    let finalOffset = {x: canvas.width / 2 - (position.x - trackingArea.x) * magnifier, y: 0, magnifier: canvas.height/trackingArea.height};
+    let finalOffset = {x: canvas.width / 2 - (position.x - trackingArea.x) * magnifier,
+                       y: canvas.height / 2 - (position.y - trackingArea.y) * magnifier,
+                       magnifier: canvas.height/trackingArea.height};
     let distance = {x: offset.x - finalOffset.x, y: offset.y - finalOffset.y, magnifier: magnifier - finalOffset.magnifier};
 
     offset.x -= distance.x * interpolationFactor;
@@ -303,8 +305,9 @@ function updateFitToScreen() {
         offset.y -= distance.y * interpolationFactor;
         magnifier += deltaMagnifier;
 
-        // Offset x to compensate for the fact that magnifier scales only the width, and position stays the same.
-        offset.x += trackingArea.width * deltaMagnifier * ((viewport.x - canvas.width/2) / viewport.width);
+        // Offsets to compensate for the fact that magnifier scales from top left corner
+        offset.x += deltaMagnifier * trackingArea.x;
+        offset.y += deltaMagnifier * trackingArea.y;
     }
 
     return distance;
