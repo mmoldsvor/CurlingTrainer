@@ -21,64 +21,74 @@ const COLOR_BLACK: string = '#232323';
 const COLOR_WHITE: string = '#ffffff';
 const COLOR_TRACKING_AREA: string = '#f3f3f3';
 
-let trackingArea: RectangleInterface = new Rectangle(-400, -300, 1800, 600);
+//let trackingArea: RectangleInterface = new Rectangle(-400, -300, 1800, 600);
+let trackingArea: RectangleInterface = new Rectangle(-200, -200, 400, 400);
 let viewport: RectangleInterface;
+
+let nodes: Array<PointInterface> = [new Point(-210, -210), new Point(-210, 210)];
 let magnifier: number = 1;
 let offset: PointInterface = new Point(0, 0);
 
 let test = [];
+let test2 = [];
 for (let x = 0; x < 1000; x+= 4){
-    test.push({point: new Point(x, -0.0005*Math.pow(x, 2) + 0.65*x + 20), dataPointValue: {velocity: 3, spin: 2}, timestamp: x*10});
+    test.push({point: new Point(x, -0.0005*Math.pow(x, 2) + 0.65*x + 20), dataPointValue: {velocity: 10/((x/100)+1), spin: 2}, timestamp: x*10});
+    test2.push({point: new Point(x, -0.0007*Math.pow(x, 2) + 0.65*x + 20), dataPointValue: {velocity: 10/((x/80)+1), spin: 2}, timestamp: x*10});
 }
 
-let dataPointList: Array<DataPointListInterface> = [
+let dataPointList: Array<DataPointList> = [];
+
+/*let dataPointList: Array<DataPointListInterface> = [
     new DataPointList('Attempt 1',
         test, true, true, '#ffa21d', 0),
+    new DataPointList('Attempt 6',
+        test2, true, true, '#2eff2b', 0),
     new DataPointList('Attempt 2',
         [
-            {point: new Point(1000, 110), dataPointValue: {velocity: 3, spin: 2}, timestamp: 0},
-            {point: new Point(900, 85), dataPointValue: {velocity: 2, spin: 1}, timestamp: 100},
-            {point: new Point(800, 70), dataPointValue: {velocity: 2, spin: 1}, timestamp: 200},
-            {point: new Point(700, 40), dataPointValue: {velocity: 2, spin: 1}, timestamp: 300},
-            {point: new Point(600, 30), dataPointValue: {velocity: 2, spin: 1}, timestamp: 400},
-            {point: new Point(500, 28), dataPointValue: {velocity: 2, spin: 1}, timestamp: 500},
-            {point: new Point(400, 28), dataPointValue: {velocity: 2, spin: 1}, timestamp: 600},
-            {point: new Point(300, 26), dataPointValue: {velocity: 2, spin: 1}, timestamp: 700},
-            {point: new Point(200, 26), dataPointValue: {velocity: 2, spin: 1}, timestamp: 800},
-            {point: new Point(50, 25), dataPointValue: {velocity: 0, spin: 0}, timestamp: 900}
+            {point: new Point(1000, 110), dataPointValue: {velocity: 10, spin: 2}, timestamp: 0},
+            {point: new Point(900, 85), dataPointValue: {velocity: 9, spin: 1}, timestamp: 1000},
+            {point: new Point(800, 70), dataPointValue: {velocity: 8, spin: 1}, timestamp: 2000},
+            {point: new Point(700, 40), dataPointValue: {velocity: 7, spin: 1}, timestamp: 3000},
+            {point: new Point(600, 30), dataPointValue: {velocity: 6, spin: 1}, timestamp: 4000},
+            {point: new Point(500, 28), dataPointValue: {velocity: 5, spin: 1}, timestamp: 5000},
+            {point: new Point(400, 28), dataPointValue: {velocity: 4, spin: 1}, timestamp: 6000},
+            {point: new Point(300, 26), dataPointValue: {velocity: 3, spin: 1}, timestamp: 7000},
+            {point: new Point(200, 26), dataPointValue: {velocity: 2, spin: 1}, timestamp: 8000},
+            {point: new Point(50, 25), dataPointValue: {velocity: 1, spin: 0}, timestamp: 9000}
         ], true, true, '#7dfcff', 0),
     new DataPointList('Attempt 3',
         [
             {point: new Point(1000, 110), dataPointValue: {velocity: 3, spin: 2}, timestamp: 0},
-            {point: new Point(900, 90), dataPointValue: {velocity: 2, spin: 1}, timestamp: 100},
-            {point: new Point(800, 75), dataPointValue: {velocity: 2, spin: 1}, timestamp: 200},
-            {point: new Point(700, 45), dataPointValue: {velocity: 2, spin: 1}, timestamp: 300},
-            {point: new Point(600, 35), dataPointValue: {velocity: 2, spin: 1}, timestamp: 400},
-            {point: new Point(500, 25), dataPointValue: {velocity: 2, spin: 1}, timestamp: 500},
-            {point: new Point(400, 30), dataPointValue: {velocity: 2, spin: 1}, timestamp: 600},
-            {point: new Point(300, 35), dataPointValue: {velocity: 2, spin: 1}, timestamp: 700},
-            {point: new Point(200, 40), dataPointValue: {velocity: 2, spin: 1}, timestamp: 800},
-            {point: new Point(100, 45), dataPointValue: {velocity: 0, spin: 0}, timestamp: 900}
+            {point: new Point(900, 90), dataPointValue: {velocity: 2, spin: 1}, timestamp: 1000},
+            {point: new Point(800, 75), dataPointValue: {velocity: 2, spin: 1}, timestamp: 2000},
+            {point: new Point(700, 45), dataPointValue: {velocity: 2, spin: 1}, timestamp: 3000},
+            {point: new Point(600, 35), dataPointValue: {velocity: 2, spin: 1}, timestamp: 4000},
+            {point: new Point(500, 25), dataPointValue: {velocity: 2, spin: 1}, timestamp: 5000},
+            {point: new Point(400, 30), dataPointValue: {velocity: 2, spin: 1}, timestamp: 6000},
+            {point: new Point(300, 35), dataPointValue: {velocity: 2, spin: 1}, timestamp: 7000},
+            {point: new Point(200, 40), dataPointValue: {velocity: 2, spin: 1}, timestamp: 8000},
+            {point: new Point(100, 45), dataPointValue: {velocity: 0, spin: 0}, timestamp: 9000}
         ], true, true, '#fb80ff', 0),
     new DataPointList('Attempt 4',
         [
             {point: new Point(1000, 100), dataPointValue: {velocity: 3, spin: 2}, timestamp: 0},
-            {point: new Point(900, 90), dataPointValue: {velocity: 2, spin: 1}, timestamp: 100},
-            {point: new Point(800, 80), dataPointValue: {velocity: 2, spin: 1}, timestamp: 200},
-            {point: new Point(700, 50), dataPointValue: {velocity: 2, spin: 1}, timestamp: 300},
-            {point: new Point(600, 40), dataPointValue: {velocity: 2, spin: 1}, timestamp: 400},
-            {point: new Point(500, 30), dataPointValue: {velocity: 2, spin: 1}, timestamp: 500},
-            {point: new Point(400, 40), dataPointValue: {velocity: 2, spin: 1}, timestamp: 600},
-            {point: new Point(300, 45), dataPointValue: {velocity: 2, spin: 1}, timestamp: 700},
-            {point: new Point(200, 47), dataPointValue: {velocity: 2, spin: 1}, timestamp: 800},
-            {point: new Point(100, 50), dataPointValue: {velocity: 0, spin: 0}, timestamp: 900}
+            {point: new Point(900, 90), dataPointValue: {velocity: 2, spin: 1}, timestamp: 1000},
+            {point: new Point(800, 80), dataPointValue: {velocity: 2, spin: 1}, timestamp: 2000},
+            {point: new Point(700, 50), dataPointValue: {velocity: 2, spin: 1}, timestamp: 3000},
+            {point: new Point(600, 40), dataPointValue: {velocity: 2, spin: 1}, timestamp: 4000},
+            {point: new Point(500, 30), dataPointValue: {velocity: 2, spin: 1}, timestamp: 5000},
+            {point: new Point(400, 40), dataPointValue: {velocity: 2, spin: 1}, timestamp: 6000},
+            {point: new Point(300, 45), dataPointValue: {velocity: 2, spin: 1}, timestamp: 7000},
+            {point: new Point(200, 47), dataPointValue: {velocity: 2, spin: 1}, timestamp: 8000},
+            {point: new Point(100, 50), dataPointValue: {velocity: 0, spin: 0}, timestamp: 9000}
         ], true, true, '#ff4652', 0)];
+*/
 
 let currentDataPoint: DataPointListInterface | null = null;
 let dataPointMouseAverage: PointInterface | null = null;
 
 let currentHoverIndex: number | null = null;
-let currentSelectedIndex: number | null = null;
+let currentSelectedIndex: Array<number> = [];
 let currentMousePosition: PointInterface | null = null;
 
 let tracking: boolean = false;
@@ -90,7 +100,7 @@ let follow: boolean = false;
 let fitToScreen: boolean = false;
 const fitToScreenThreshold = 2;
 
-const indicatorThreshold: number = 50;
+const indicatorThreshold: number = 10;
 let zoomLimits: PointInterface = new Point(0.35, 20);
 let scrollSpeed: number = 0.05;
 
@@ -112,24 +122,27 @@ window.onload = () => {
 window.onresize = () => {
     resizeCanvas();
     resizeViewport();
+    startFitToScreen();
 };
 
 document.onwheel = (event) => {
-    let deltaMagnifier = -scrollSpeed * event.deltaY;
+    if (document.readyState === 'complete') {
+        let deltaMagnifier = -scrollSpeed * event.deltaY;
 
-    let canvasBound = canvas.getBoundingClientRect();
-    let x = event.clientX - canvasBound.left;
-    let y = event.clientY - canvasBound.top;
+        let canvasBound = canvas.getBoundingClientRect();
+        let x = event.clientX - canvasBound.left;
+        let y = event.clientY - canvasBound.top;
 
-    if (zoomLimits.x < magnifier + deltaMagnifier && magnifier + deltaMagnifier < zoomLimits.y) {
-        magnifier += deltaMagnifier;
+        if (zoomLimits.x < magnifier + deltaMagnifier && magnifier + deltaMagnifier < zoomLimits.y) {
+            magnifier += deltaMagnifier;
 
-        //Offsets the position of the viewport to emulate zoom towards mouse
-        offset.x += trackingArea.width * deltaMagnifier * ((viewport.x - x) / viewport.width);
-        offset.y += trackingArea.height * deltaMagnifier * ((viewport.y - y) / viewport.height);
+            //Offsets the position of the viewport to emulate zoom towards mouse
+            offset.x += trackingArea.width * deltaMagnifier * ((viewport.x - x) / viewport.width);
+            offset.y += trackingArea.height * deltaMagnifier * ((viewport.y - y) / viewport.height);
+        }
+
+        resizeViewport();
     }
-
-    resizeViewport();
 };
 
 document.onmousedown = (event) => {
@@ -137,51 +150,68 @@ document.onmousedown = (event) => {
 };
 
 document.onmouseup = (event) => {
+    // Updates current selected data point if mouse was not moved between click and release
     if(currentMousePosition.x == event.x && currentMousePosition.y == event.y){
-        currentSelectedIndex = currentHoverIndex;
+        if(currentHoverIndex != null){
+            if(event.shiftKey){
+                if(!currentSelectedIndex.includes(currentHoverIndex)) {
+                    currentSelectedIndex.push(currentHoverIndex)
+                }else {
+                    let index = currentSelectedIndex.indexOf(currentHoverIndex);
+                    if (index !== -1)
+                        currentSelectedIndex.splice(index, 1);
+                }
+            }else {
+                currentSelectedIndex = [currentHoverIndex];
+            }
+        }else{
+            currentSelectedIndex = [];
+        }
     }
     currentMousePosition = null;
 };
 
 document.onmousemove = (event) => {
-    let canvasBound = canvas.getBoundingClientRect();
-    let x = event.clientX - canvasBound.left;
-    let y = event.clientY - canvasBound.top;
+    if (document.readyState === 'complete') {
+        let canvasBound = canvas.getBoundingClientRect();
+        let x = event.clientX - canvasBound.left;
+        let y = event.clientY - canvasBound.top;
 
-    if (event.buttons == 1) {
-        offset.x += event.movementX;
-        offset.y += event.movementY;
-        stopFollow();
-        resizeViewport();
-    }
+        if (event.buttons == 1) {
+            offset.x += event.movementX;
+            offset.y += event.movementY;
+            stopFollow();
+            resizeViewport();
+        }
 
-    //Translates mouse position from viewport to trackingArea coordinate system
-    let mousePosition: PointInterface = new Point(x, y).getTranslated(viewport, trackingArea);
+        //Translates mouse position from viewport to trackingArea coordinate system
+        let mousePosition: PointInterface = new Point(x, y).getTranslated(viewport, trackingArea);
 
-    //Gets closest dataPoint from any visible and active dataPoint lists
-    let closestDistance: number;
-    let closestDataPoint: DataPointListInterface;
-    let currentIndex:number;
+        //Gets closest dataPoint from any visible and active dataPoint lists
+        let closestDistance: number;
+        let closestDataPoint: DataPointListInterface;
+        let currentIndex: number;
 
-    for (let i = 0; i < dataPointList.length; i++){
-        if (dataPointList[i].active && dataPointList[i].show && dataPointList[i].dataPoints.length > 0) {
-            let closest = dataPointList[i].getClosest(mousePosition.x, mousePosition.y);
-            let distance = closest.point.distance(mousePosition);
-            if (closestDistance == undefined || distance < closestDistance) {
-                closestDistance = distance;
-                closestDataPoint = new DataPointList(dataPointList[i].name, [closest], true, true, dataPointList[i].color, Date.now());
-                currentIndex = i;
+        for (let i = 0; i < dataPointList.length; i++) {
+            if (dataPointList[i].active && dataPointList[i].show && dataPointList[i].dataPoints.length > 0) {
+                let closest = dataPointList[i].getClosest(mousePosition.x, mousePosition.y);
+                let distance = closest.point.distance(mousePosition);
+                if (closestDistance == undefined || distance < closestDistance) {
+                    closestDistance = distance;
+                    closestDataPoint = new DataPointList(dataPointList[i].name, [closest], true, true, dataPointList[i].color, Date.now());
+                    currentIndex = i;
+                }
             }
         }
-    }
-    if (closestDataPoint != undefined && closestDataPoint.dataPoints[0].point.distance(mousePosition) < indicatorThreshold) {
-        currentDataPoint = closestDataPoint;
-        dataPointMouseAverage = new Point(mousePosition.x + (closestDataPoint.dataPoints[0].point.x - mousePosition.x) / 2, mousePosition.y + (closestDataPoint.dataPoints[0].point.y - mousePosition.y) / 2);
-        currentHoverIndex = currentIndex;
-    }else {
-        currentDataPoint = null;
-        dataPointMouseAverage = null;
-        currentHoverIndex = null;
+        if (closestDataPoint != undefined && closestDataPoint.dataPoints[0].point.distance(mousePosition) < indicatorThreshold) {
+            currentDataPoint = closestDataPoint;
+            dataPointMouseAverage = new Point(mousePosition.x + (closestDataPoint.dataPoints[0].point.x - mousePosition.x) / 2, mousePosition.y + (closestDataPoint.dataPoints[0].point.y - mousePosition.y) / 2);
+            currentHoverIndex = currentIndex;
+        } else {
+            currentDataPoint = null;
+            dataPointMouseAverage = null;
+            currentHoverIndex = null;
+        }
     }
 };
 
@@ -222,6 +252,8 @@ function updateCanvas(){
     if(tracking) {
         handleNetworkData();
     }
+    drawNodes();
+
     drawStone();
     drawDataBox();
 
@@ -237,7 +269,7 @@ function newTrack(){
     let generatedHue = uniqueColor.next().value;
     let currentTrack: DataPointListInterface = new DataPointList(getName(), [], true, true, `hsl(${generatedHue}, 100%, 65%)`, Date.now());
     dataPointList.push(currentTrack);
-    currentSelectedIndex = dataPointList.length-1;
+    currentSelectedIndex.push(dataPointList.length-1);
 }
 
 function stopTrack(){
@@ -245,7 +277,7 @@ function stopTrack(){
 }
 
 function cancelTrack(){
-    if(confirm('Do you wish to stop tracking without saving?')) {
+    if(tracking && confirm('Do you wish to stop tracking without saving?')) {
         tracking = false;
         dataPointList.pop();
     }
@@ -289,14 +321,14 @@ function updateFitToScreen() {
     let position: PointInterface = new Point(0, 0);
 
     if (Network.networkData != null && Network.networkData['position'] != null) {
-        position = new Point(Network.networkData['position'].x, Network.networkData['position'].y);
+        position.x = Network.networkData['position'].x;
     }
 
     const interpolationFactor: number = 0.2;
 
     let finalOffset = {x: canvas.width / 2 - (position.x - trackingArea.x) * magnifier,
                        y: canvas.height / 2 - (position.y - trackingArea.y) * magnifier,
-                       magnifier: canvas.height/trackingArea.height};
+                       magnifier: canvas.height*0.75/trackingArea.height};
     let distance = {x: offset.x - finalOffset.x, y: offset.y - finalOffset.y, magnifier: magnifier - finalOffset.magnifier};
 
     offset.x -= distance.x * interpolationFactor;
@@ -332,7 +364,7 @@ function handleNetworkData(){
 }
 
 function drawCourt(){
-    drawLine(new Point(-183, -250), new Point(-183, 250), COLOR_BLACK);
+    //drawLine(new Point(-183, -250), new Point(-183, 250), COLOR_BLACK);
     drawLine(new Point(3658, -250), new Point(3658, 250), COLOR_BLACK);
 
     drawEllipse(new Point(0, 0), 183, COLOR_BLUE);
@@ -358,6 +390,12 @@ function drawCourt(){
 
     drawEllipse(new Point(0, 0), 15, COLOR_WHITE);
     drawEllipse(new Point(3475, 0), 15, COLOR_WHITE);
+}
+
+function drawNodes(){
+    for(let node of nodes){
+        drawPoint(node, 10, '#afafaf');
+    }
 }
 
 function drawStone(color: string = COLOR_RED){
@@ -388,8 +426,10 @@ function drawDataBox(){
         let color = currentDataPoint.color;
 
         drawPoint(dataPoint.point, 4, color);
-        const velocity = `Velocity: ${dataPoint.dataPointValue.velocity}`;
-        const spin = `Spin: ${dataPoint.dataPointValue.spin}`;
+        const velocity = `Velocity: ${dataPoint.dataPointValue.velocity} m/s`;
+        const spin = `Spin: ${dataPoint.dataPointValue.spin/50} rpm`;
+        //const velocity = 'Velocity: No Data';
+        //const spin = 'Spin: No Data';
         drawTextBox(dataPointMouseAverage, `${velocity}\n${spin}`);
     }
 }
@@ -460,4 +500,16 @@ function drawTextBox(point: PointInterface, text){
         context.fillStyle = COLOR_BLACK;
         context.fillText(lines[line], translatedPoint.x + box.width*0.05, translatedPoint.y - 2*lineHeight + (line*lineHeight));
     }
+}
+
+function focusDataPointList(index: number, shouldFocus: boolean){
+    console.log('TEST');
+    for(let i = 0; i < dataPointList.length; i++){
+        dataPointList[i].active = !(shouldFocus && index != i);
+    }
+}
+
+function deleteDataPointList(index: number){
+    currentSelectedIndex = [];
+    dataPointList.splice(index, 1);
 }
