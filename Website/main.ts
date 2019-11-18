@@ -21,7 +21,7 @@ const COLOR_BLACK: string = '#232323';
 const COLOR_WHITE: string = '#ffffff';
 const COLOR_TRACKING_AREA: string = '#f3f3f3';
 
-//let trackingArea: RectangleInterface = new Rectangle(-400, -300, 1800, 600);
+//let trackingArea: RectangleInterface = new Rectangle(-400, -300, 2200, 600);
 let trackingArea: RectangleInterface = new Rectangle(-200, -200, 400, 400);
 let viewport: RectangleInterface;
 
@@ -31,18 +31,29 @@ let offset: PointInterface = new Point(0, 0);
 
 let test = [];
 let test2 = [];
+
 for (let x = 0; x < 1000; x+= 4){
     test.push({point: new Point(x, -0.0005*Math.pow(x, 2) + 0.65*x + 20), dataPointValue: {velocity: 10/((x/100)+1), spin: 2}, timestamp: x*10});
-    test2.push({point: new Point(x, -0.0007*Math.pow(x, 2) + 0.65*x + 20), dataPointValue: {velocity: 10/((x/80)+1), spin: 2}, timestamp: x*10});
 }
 
 let dataPointList: Array<DataPointList> = [];
 
-/*let dataPointList: Array<DataPointListInterface> = [
+/*let point1: PointInterface = new Point(trackingArea.x + trackingArea.width*0.1, trackingArea.y + Math.random()*trackingArea.height);
+let point2: PointInterface = new Point(trackingArea.x + trackingArea.width*0.5, trackingArea.y + Math.random()*trackingArea.height);
+let point3: PointInterface = new Point(trackingArea.x + trackingArea.width*0.9, trackingArea.y + Math.random()*trackingArea.height);
+let cubic: {a, b, c} = cubicFunction(point1, point2, point3);
+
+let delta = trackingArea.width/1000;
+for (let x = 0; x < 1000; x++){
+    let value = x*delta + trackingArea.x;
+    test2.push({point: new Point(value, cubic.a*Math.pow(value, 2) + cubic.b*value + cubic.c + (Math.random()-0.5)), dataPointValue: {velocity: 3-(10/((x/100)+1)), spin: 2}, timestamp: x*10});
+}
+
+let dataPointList: Array<DataPointList> = [new DataPointList('Attempt 1', test2, true, true, '#ffa730', 0)];
+
+let dataPointList: Array<DataPointListInterface> = [
     new DataPointList('Attempt 1',
         test, true, true, '#ffa21d', 0),
-    new DataPointList('Attempt 6',
-        test2, true, true, '#2eff2b', 0),
     new DataPointList('Attempt 2',
         [
             {point: new Point(1000, 110), dataPointValue: {velocity: 10, spin: 2}, timestamp: 0},
@@ -92,7 +103,7 @@ let currentSelectedIndex: Array<number> = [];
 let currentMousePosition: PointInterface | null = null;
 
 let tracking: boolean = false;
-let dataPointThreshold: number = 5;
+let dataPointThreshold: number = 1;
 
 let uniqueColor = colorGenerator();
 
@@ -103,6 +114,9 @@ const fitToScreenThreshold = 2;
 const indicatorThreshold: number = 10;
 let zoomLimits: PointInterface = new Point(0.35, 20);
 let scrollSpeed: number = 0.05;
+
+
+let velocities: Array<number> = [];
 
 window.onload = () => {
     canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -348,18 +362,37 @@ function updateFitToScreen() {
 function handleNetworkData(){
     // Adds currently tracked position to data points if distance is lower than threshold
     if (Network.networkData != null && tracking) {
-        const position = new Point(Network.networkData['position'].x, Network.networkData['position'].y);
-        const data: DataPointValueInterface = Network.networkData['data'];
+        let currentDataPointList = dataPointList[dataPointList.length - 1].dataPoints;
 
-        let oldDataPoints: Array<DataPointInterface> = dataPointList[dataPointList.length-1].dataPoints;
+        const position = new Point(Network.networkData['position'].x, Network.networkData['position'].y);
+
+        //const data: DataPointValueInterface = Network.networkData['data'];
+        if (dataPointList[dataPointList.length - 1 ].dataPoints.length > 1){
+            let dataPoints = dataPointList[dataPointList.length-1].dataPoints;
+            let deltaTime: number = dataPoints[dataPoints.length - 1].timestamp - dataPoints[dataPoints.length - 2].timestamp;
+            let distance: number = dataPoints[dataPoints.length-1].point.distance(dataPoints[dataPoints.length-2].point);
+            velocities.push(distance*10/ deltaTime);
+            if (velocities.length > 10){
+                velocities.shift();
+            }
+        }
+
+        let sum = 0;
+        for( let i = 0; i < velocities.length; i++ ){
+            sum += velocities[i]
+        }
+        let velocity = sum/velocities.length;
+        const data: DataPointValueInterface = {velocity: velocity, spin: 0};
+        dataPointList[dataPointList.length-1].dataPoints.push({point: position, dataPointValue: data, timestamp: Date.now()} as DataPointInterface)
+
+        /*let oldDataPoints: Array<DataPointInterface> = dataPointList[dataPointList.length-1].dataPoints;
         let latestPoint: PointInterface;
         if(oldDataPoints.length > 0) {
             latestPoint = oldDataPoints[oldDataPoints.length - 1].point;
         }
-
         if(latestPoint == undefined || latestPoint.distance(position) > dataPointThreshold){
             dataPointList[dataPointList.length-1].dataPoints.push({point: position, dataPointValue: data, timestamp: Date.now()} as DataPointInterface)
-        }
+        }*/
     }
 }
 
@@ -426,7 +459,7 @@ function drawDataBox(){
         let color = currentDataPoint.color;
 
         drawPoint(dataPoint.point, 4, color);
-        const velocity = `Velocity: ${dataPoint.dataPointValue.velocity} m/s`;
+        const velocity = `Velocity: ${Math.round(dataPoint.dataPointValue.velocity*100)/100} m/s`;
         const spin = `Spin: ${dataPoint.dataPointValue.spin/50} rpm`;
         //const velocity = 'Velocity: No Data';
         //const spin = 'Spin: No Data';
@@ -502,14 +535,50 @@ function drawTextBox(point: PointInterface, text){
     }
 }
 
-function focusDataPointList(index: number, shouldFocus: boolean){
-    console.log('TEST');
+function focusDataPointList(index: number){
+    let count = 0;
+    for (let i = 0; i < dataPointList.length; i++){
+        if (dataPointList[i].active) {
+            count += 1;
+        }
+    }
     for(let i = 0; i < dataPointList.length; i++){
-        dataPointList[i].active = !(shouldFocus && index != i);
+        if (dataPointList[index].active && count == 1){
+            dataPointList[i].active = true;
+        }else{
+            dataPointList[i].active = index == i;
+        }
     }
 }
 
 function deleteDataPointList(index: number){
     currentSelectedIndex = [];
+    stopTrack();
     dataPointList.splice(index, 1);
+}
+
+function cubicFunction(point1, point2, point3){
+    let a = (-point1.x*point2.y + point1.x*point3.y + point2.x*point1.y - point2.x*point3.y - point3.x*point1.y + point3.x*point2.y)/
+        (Math.pow(point1.x, 2)*point2.x - Math.pow(point1.x, 2)*point3.x - point1.x*Math.pow(point2.x, 2) + point1.x*Math.pow(point3.x, 2) + Math.pow(point2.x, 2)*point3.x - point2.x*Math.pow(point3.x, 2));
+
+    let b = (Math.pow(point1.x, 2)*point2.y - Math.pow(point1.x, 2)*point3.y - Math.pow(point2.x, 2)*point1.y + Math.pow(point2.x, 2)*point3.y + Math.pow(point3.x, 2)*point1.y - Math.pow(point3.x, 2)*point2.y)/
+        (Math.pow(point1.x, 2)*point2.x - Math.pow(point1.x, 2)*point3.x - point1.x*Math.pow(point2.x, 2) + point1.x*Math.pow(point3.x, 2) + Math.pow(point2.x, 2)*point3.x - point2.x*Math.pow(point3.x, 2));
+
+    let c = (Math.pow(point1.x, 2)*point2.x*point3.y - Math.pow(point1.x, 2)*point3.x*point2.y - point1.x*Math.pow(point2.x, 2)*point3.y + point1.x*Math.pow(point3.x, 2)*point2.y + Math.pow(point2.x, 2)*point3.x*point1.y - point2.x*Math.pow(point3.x, 2)*point1.y)/
+        (Math.pow(point1.x, 2)*point2.x - Math.pow(point1.x, 2)*point3.x - point1.x*Math.pow(point2.x, 2) + point1.x*Math.pow(point3.x, 2) + Math.pow(point2.x, 2)*point3.x - point2.x*Math.pow(point3.x, 2))
+
+    return {a:a, b:b, c:c}
+}
+
+function getTrajectory(){
+    let point1: PointInterface = new Point(trackingArea.x + trackingArea.width*0.1, trackingArea.y + Math.random()*trackingArea.height);
+    let point2: PointInterface = new Point(trackingArea.x + trackingArea.width*0.5, trackingArea.y + Math.random()*trackingArea.height);
+    let point3: PointInterface = new Point(trackingArea.x + trackingArea.width*0.9, trackingArea.y + Math.random()*trackingArea.height);
+    let cubic: {a, b, c} = cubicFunction(point1, point2, point3);
+
+    let delta = trackingArea.width/1000;
+    for (let x = 0; x < 1000; x++){
+        let value = x*delta + trackingArea.x;
+        //test2.push({point: new Point(value, cubic.a*Math.pow(value, 2) + cubic.b*value + cubic.c), dataPointValue: {velocity: 10/((x/100)+1), spin: 2}, timestamp: x*10});
+    }
 }
